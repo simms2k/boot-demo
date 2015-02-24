@@ -1,0 +1,7 @@
+server.port: 9000
+
+endpoints.shutdown.enabled: true
+
+spring:
+  datasource.url: 'jdbc:h2:mem:demo;DB_CLOSE_ON_EXIT=FALSE'
+  jpa.database-platform: 'org.hibernate.dialect.H2Dialect'
