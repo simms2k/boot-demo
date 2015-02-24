@@ -1,6 +1,5 @@
-package com.b2s.services.travel;
+package com.b2s.services.order;
 
-import com.b2s.services.order.SpringBootDemoApplication;
 import com.b2s.services.order.model.Order;
 import com.b2s.services.order.model.OrderRepository;
 import com.jayway.restassured.RestAssured;
