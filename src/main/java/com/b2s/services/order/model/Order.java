@@ -9,7 +9,7 @@ public class Order {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private long id;
-    @Size(min=3)
+    @Size(min=3, max=255)
     private String varOrderId;
     private String partnerOrderId;
     private String price;

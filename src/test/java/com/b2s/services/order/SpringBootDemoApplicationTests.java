@@ -3,6 +3,7 @@ package com.b2s.services.order;
 import com.b2s.services.order.model.Order;
 import com.b2s.services.order.model.OrderRepository;
 import com.jayway.restassured.RestAssured;
+import com.jayway.restassured.http.ContentType;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +21,7 @@ import static org.hamcrest.Matchers.*;
 import java.util.List;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = SpringBootDemoApplication.class)
+@SpringApplicationConfiguration(classes = {SpringBootDemoApplication.class, TestConfig.class})
 @WebAppConfiguration
 @IntegrationTest("server.port:0")
 public class SpringBootDemoApplicationTests {
@@ -31,6 +32,9 @@ public class SpringBootDemoApplicationTests {
     @Value("${local.server.port}")
     private int port;
 
+    //private static final String BASE_URL = "/rest/demo-orders"; // <-- uses Jersey Resource (set -Dspring.profiles.active=jersey)
+    private static final String BASE_URL = "/orders"; // <-- uses Spring RestController
+
     @Before
     public void setup() {
         RestAssured.port = port;
@@ -39,17 +43,52 @@ public class SpringBootDemoApplicationTests {
 	@Test
 	public void lookupSeededRecords() {
         List<Order> orders = orderRepository.findByVarOrderId("foo");
-        assertEquals(1, orders.size());
-        assertEquals("bar", orders.get(0).getPartnerOrderId());
+
+        assertThat(orders.size(), is(1));
+        assertThat(orders.get(0).getPartnerOrderId(), is("bar"));
 	}
 
     @Test
     public void getAllRecords() {
         when().
-                get("/orders")
+                get(BASE_URL)
         .then().
                 statusCode(HttpStatus.SC_OK).
                 body("varOrderId", hasItems("foo", "faz", "this"));
     }
 
+    @Test
+    public void insertAndDelete() {
+        int orderId =
+        given().
+                contentType(ContentType.JSON).
+                body(new Order("voID", "poID", "USD 1.23"))
+        .when().
+                post(BASE_URL)
+        .then().
+                statusCode(HttpStatus.SC_CREATED)
+        .extract().
+                path("id");
+
+        when().
+                delete(String.format("%s/%d", BASE_URL, orderId))
+        .then().
+                statusCode(HttpStatus.SC_NO_CONTENT);
+
+        when().
+                get(String.format("%s/%d", BASE_URL, orderId))
+        .then().
+                statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+
+    @Test
+    public void insertInvalid() {
+        given().
+                contentType(ContentType.JSON).
+                body(new Order("v", "poID", "USD 1.23")) //varOrderId too short (<3 characters)
+        .when().
+                post(BASE_URL)
+        .then().
+                statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
 }

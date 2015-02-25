@@ -3,9 +3,14 @@ package com.b2s.services.order.service;
 import com.b2s.services.order.model.Order;
 import com.b2s.services.order.model.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+
 import static org.springframework.web.bind.annotation.RequestMethod.*;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/orders")
@@ -21,19 +26,31 @@ public class OrderService {
 
     @RequestMapping(value = "/{id}", method = GET)
     public Order get(@PathVariable long id) {
-        return orderRepository.findOne(id);
+        Order order = orderRepository.findOne(id);
+        if(null == order) {
+            throw new NoSuchElementException();
+        } else {
+            return order;
+        }
+    }
+
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler({ NoSuchElementException.class })
+    public void handleNotFound() {
     }
 
     @RequestMapping(method = POST)
-    public long create(@RequestBody Map<String,String> map) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public Order create(@Valid @RequestBody Order order) {
         return orderRepository.save(new Order(
-                map.get("varOrderId"),
-                map.get("partnerOrderId"),
-                map.get("price")
-        )).getId();
+                order.getVarOrderId(),
+                order.getPartnerOrderId(),
+                order.getPrice()
+        ));
     }
 
     @RequestMapping(value = "/{id}", method = DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void remove(@PathVariable long id) {
         orderRepository.delete(id);
     }
