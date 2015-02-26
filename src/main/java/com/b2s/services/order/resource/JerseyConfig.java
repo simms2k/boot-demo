@@ -17,8 +17,7 @@ public class JerseyConfig extends ResourceConfig {
 
     @Bean
     public ServletRegistrationBean jerseyServlet() {
-        // our rest resources will be available in the path /rest/*
-        ServletRegistrationBean registration = new ServletRegistrationBean(new ServletContainer(), "/rest/*");
+        ServletRegistrationBean registration = new ServletRegistrationBean(new ServletContainer(), "/*");
         registration.addInitParameter(ServletProperties.JAXRS_APPLICATION_CLASS, JerseyConfig.class.getName());
         return registration;
     }

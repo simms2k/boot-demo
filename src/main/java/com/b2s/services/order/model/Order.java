@@ -23,6 +23,13 @@ public class Order {
         this.price = price;
     }
 
+    public Order(long id, String varOrderId, String partnerOrderId, String price) {
+        this.id = id;
+        this.varOrderId = varOrderId;
+        this.partnerOrderId = partnerOrderId;
+        this.price = price;
+    }
+
     public long getId() {
         return id;
     }

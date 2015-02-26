@@ -32,8 +32,7 @@ public class SpringBootDemoApplicationTests {
     @Value("${local.server.port}")
     private int port;
 
-    //private static final String BASE_URL = "/rest/demo-orders"; // <-- uses Jersey Resource (set -Dspring.profiles.active=jersey)
-    private static final String BASE_URL = "/orders"; // <-- uses Spring RestController
+    private static final String BASE_URL = "orders";
 
     @Before
     public void setup() {
@@ -71,12 +70,12 @@ public class SpringBootDemoApplicationTests {
                 path("id");
 
         when().
-                delete(String.format("%s/%d", BASE_URL, orderId))
+                delete("{baseUrl}/{orderId}", BASE_URL, orderId)
         .then().
                 statusCode(HttpStatus.SC_NO_CONTENT);
 
         when().
-                get(String.format("%s/%d", BASE_URL, orderId))
+                get("{baseUrl}/{orderId}", BASE_URL, orderId)
         .then().
                 statusCode(HttpStatus.SC_NOT_FOUND);
     }
@@ -90,5 +89,43 @@ public class SpringBootDemoApplicationTests {
                 post(BASE_URL)
         .then().
                 statusCode(HttpStatus.SC_BAD_REQUEST);
+    }
+
+    @Test
+    public void updateOnlyExistingOrder() {
+        int nonExistentOrderId = -1;
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(new Order(nonExistentOrderId, "nextVOID", "nextPOID", "USD 1"))
+        .when()
+                .put("{baseUrl}/{orderId}", BASE_URL, nonExistentOrderId)
+        .then()
+                .statusCode(HttpStatus.SC_NOT_FOUND);
+
+        int orderId =
+                given().
+                        contentType(ContentType.JSON).
+                        body(new Order("voID", "poID", "USD 1.23"))
+                .when().
+                        post(BASE_URL)
+                .then().
+                        statusCode(HttpStatus.SC_CREATED)
+                .extract().
+                        path("id");
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(new Order(orderId, "nextVOID", "nextPOID", "USD 1"))
+        .when()
+                .put("{baseUrl}/{orderId}", BASE_URL, orderId)
+        .then()
+                .statusCode(HttpStatus.SC_NO_CONTENT);
+
+        when().
+                get("{baseUrl}/{orderId}", BASE_URL, orderId)
+        .then().
+                statusCode(HttpStatus.SC_OK)
+                .body("partnerOrderId", is("nextPOID"));
     }
 }

@@ -11,7 +11,7 @@ import static javax.ws.rs.core.Response.Status.*;
 import java.util.Map;
 
 @Service
-@Path("/demo-orders")
+@Path("/orders")
 @Consumes("application/json")
 @Produces("application/json")
 public class OrderResource {

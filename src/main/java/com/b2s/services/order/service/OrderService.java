@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 import static org.springframework.web.bind.annotation.RequestMethod.*;
-import java.util.Map;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -43,6 +42,18 @@ public class OrderService {
     @ResponseStatus(HttpStatus.CREATED)
     public Order create(@Valid @RequestBody Order order) {
         return orderRepository.save(new Order(
+                order.getVarOrderId(),
+                order.getPartnerOrderId(),
+                order.getPrice()
+        ));
+    }
+
+    @RequestMapping(value = "/{id}", method = PUT)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void update(@PathVariable long id, @Valid @RequestBody Order order) {
+        get(id); //validate order exists
+        orderRepository.save(new Order(
+                id,
                 order.getVarOrderId(),
                 order.getPartnerOrderId(),
                 order.getPrice()
